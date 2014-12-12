@@ -7,9 +7,9 @@
 ## 使用
 
 ```
-go run main.go 127.0.0:8080
+go run main.go 127.0.0.1:8080
 ```
-then visit http://127.0.0:8080/v1/filter?q=你的敏感词
+then visit http://127.0.0.1:8080/v1/filter?q=你的敏感词
 
 ## API
 
