@@ -16,13 +16,13 @@ then visit http://127.0.0.1:8080/v1/filter?q=你的敏感词
 ### 1.替换敏感词
 输入一段文本，返回敏感词及敏感词替换为*号后的文本
 
-**URL**:  /v1/filter
-**Method**:  GET or POST
-**Params**: 
-|**Name**|**Required**| **Type**|**Default Value**| **Example**| **Desc.**|
--|
-q | Yes | string | | 中华人民共和国 | 文章内容 |
-**Response**:
+* **Request:**  /v1/filter 
+* **Request Method:** GET or POST 
+* **Params**:
+|Name| Required| Type | Default Value| Example | Desc. |
+| -- | ------- | ---- | ------------ | ------- | ----  |
+|q   | Yes     | string | | 中华人民共和国 | 文章内容 |
+*  **Response:**
 ```
 {
   "code": 1,
