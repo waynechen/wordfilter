@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	_ "dooland/wordfilter/dict"
 	"dooland/wordfilter/trie"
@@ -103,6 +104,9 @@ func main() {
 	if len(os.Args) > 1 {
 		ipAddr = os.Args[1]
 	}
+
+	t := time.Now().Local().Format("2006-01-02 15:04:05 -0700")
+	fmt.Printf("%s Listen %s\n", t, ipAddr)
 	http.ListenAndServe(ipAddr, &router{})
 }
 

@@ -1,4 +1,3 @@
-# 敏感词过滤服务
 ---
 基于词典的敏感词过滤程序
 
@@ -19,9 +18,26 @@ then visit http://127.0.0.1:8080/v1/filter?q=你的敏感词
 * **Request:**  /v1/filter 
 * **Request Method:** GET or POST 
 * **Params**:
-|Name| Required| Type | Default Value| Example | Desc. |
-| -- | ------- | ---- | ------------ | ------- | ----  |
-|q   | Yes     | string | | 中华人民共和国 | 文章内容 |
+<table>
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Type</th>
+			<th>Required</th>
+			<th>Example</th>
+			<th>Desc.</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td> q </td>
+			<td> string </td>
+			<td> Yes </td>
+			<td> </td>
+			<td> 需要检查的文章内容 </td>
+		</tr>
+	</tbody>
+</table>
 *  **Response:**
 ```
 {

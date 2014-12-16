@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"dooland/wordfilter/trie"
 )
@@ -49,6 +50,8 @@ func loadAndAddToTrie(path string) (err error) {
 	}
 
 	defer f.Close()
+
+	fmt.Printf("%s Load dict: %s\n", time.Now().Local().Format("2006-01-02 15:04:05 -0700"), path)
 
 	buf := bufio.NewReader(f)
 	for {
