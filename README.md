@@ -8,11 +8,12 @@
 ```
 go run main.go 127.0.0.1:8080
 ```
-then visit http://127.0.0.1:8080/v1/filter?q=你的敏感词
+
+then visit http://127.0.0.1:8080/v1/filter?q=文本内容
 
 ## API
 
-### 1.替换敏感词
+### 1.查找替换敏感词
 输入一段文本，返回敏感词及敏感词替换为*号后的文本
 
 * **Request:**  /v1/filter 
@@ -34,7 +35,7 @@ then visit http://127.0.0.1:8080/v1/filter?q=你的敏感词
 			<td> string </td>
 			<td> Yes </td>
 			<td> </td>
-			<td> 需要检查的文章内容 </td>
+			<td> 需要检查的文本内容 </td>
 		</tr>
 	</tbody>
 </table>
@@ -50,6 +51,9 @@ then visit http://127.0.0.1:8080/v1/filter?q=你的敏感词
 
 ### 2.添加敏感词
 TOOD
+
+### 3.删除敏感词
+TODO
 
 ## 词库说明
 敏感词词库在 dictionary 目录里
