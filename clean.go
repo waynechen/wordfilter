@@ -11,7 +11,7 @@ import (
 )
 
 //清除相同的关键字
-func main() {
+func main1() {
 	path := "./dictionary"
 
 	var loadAllDictWalk filepath.WalkFunc = func(path string, f os.FileInfo, err error) error {

@@ -1,7 +1,12 @@
 package trie
 
+import (
+	"sync"
+)
+
 type Trie struct{
 	Root *TrieNode
+	Mutex sync.RWMutex
 }
 
 type TrieNode struct{
@@ -29,8 +34,9 @@ func (t *Trie) Add(keyword string) {
 		return
 	}
 
-	node := t.Root
+	t.Mutex.Lock()
 
+	node := t.Root
 	for _, char := range chars {
 		if _, ok := node.Node[char]; !ok {
 			node.Node[char] = NewTrieNode()
@@ -38,6 +44,50 @@ func (t *Trie) Add(keyword string) {
 		node = node.Node[char]
 	}
 	node.End = true
+
+	t.Mutex.Unlock()
+}
+
+func (t *Trie) Del(keyword string) {
+	chars := []rune(keyword)
+	if len(chars) == 0 {
+		return
+	}
+
+	t.Mutex.Lock()
+
+	node := t.Root
+
+	t.cycleDel(node, chars, 0)
+
+
+	//t.cycleDel(node, chars, 0)
+
+	t.Mutex.Unlock()
+}
+
+func (t *Trie) cycleDel(node *TrieNode, chars []rune, index int) (shouldDel bool) {
+	char := chars[index]
+
+	l := len(chars)
+
+//	if tmpNode, ok := node.Node[char]; ok && index < l {
+//		shouldDel = t.cycleDel(tmpNode, chars, index+1)
+//	}else {
+//		shouldDel = true
+//	}
+//
+//	if index+1 < l {
+//		if node.Node[char].End {
+//			shouldDel = false
+//		}
+//	}
+//
+//	if shouldDel {
+//		delete(node.Node, char)
+	}
+
+	return
 }
 
 // 将text中在trie里的关键字，替换为*号

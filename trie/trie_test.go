@@ -57,3 +57,41 @@ func TestReplace(t *testing.T) {
 		t.Errorf("替换失败\n")
 	}
 }
+
+func TestDel(t *testing.T) {
+	trie := NewTrie()
+	trie.Add("苍井空")
+	trie.Add("AV")
+	trie.Add("日本AV")
+	trie.Add("AV演员")
+
+	node := trie.Root
+	printTrie(node, t, " |")
+	t.Log("-----")
+
+	trie.Del("AV演员")
+	node = trie.Root
+	printTrie(node, t, " |")
+	//
+	//	text := "苍井空（あおい そら），日本AV演员兼电视、电影演员。苍井空AV女优是从xx出道"
+	//	expect := "***（あおい そら），****演员兼电视、电影演员。*****女优是从xx出道"
+	//
+	//	_, _, newText := trie.Replace(text)
+	//
+	//	if newText != expect {
+	//		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
+	//	}
+	//
+	//
+	//	t.Log("删除一个敏感词")
+	//
+	//	trie.Del("AV")
+	//
+	//	text := "苍井空（あおい そら），日本AV演员兼电视、电影演员。苍井空AV女优是从xx出道"
+	//	expect := "***（あおい そら），日本****兼电视、电影演员。***AV女优是从xx出道"
+	//
+	//	_, _, newText := trie.Replace(text)
+	//	if newText != expect {
+	//		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
+	//	}
+}

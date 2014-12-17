@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	_ "dooland/wordfilter/dict"
@@ -21,11 +22,16 @@ func (this *router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/":
 		apiHelper(w)
 
-	case "/v1/filter":
+	case "/v1/filter": // 查找过滤
 		filterWords(w, r)
 
 	case "/v1/add": // 添加敏感词
 		// TODO
+		addWords(w, r)
+
+	case "v1/del": // 删除敏感词
+		// TODO
+		delWords(w, r)
 
 	default:
 		notFound(w)
@@ -38,8 +44,10 @@ func notFound(w http.ResponseWriter) {
 
 func apiHelper(w http.ResponseWriter) {
 	help := make(map[string]string)
-	help["filter_url_get"] = "/v1/filter?q={text}"
-	help["filter_url_post"] = "/v1/filter"
+	help["filter_url (GET)"] = "/v1/filter?q={text}"
+	help["filter_url (POST)"] = "/v1/filter"
+	help["add_words (POST)"] = "/v1/add"
+	help["delete_words (POST)"] = "/v1/del"
 	serveJson(w, help)
 }
 
@@ -84,6 +92,58 @@ func filterWords(w http.ResponseWriter, r *http.Request) {
 		res.Error = "参数"+paramName+"不能为空"
 	}
 	serveJson(w, res)
+}
+
+func addWords(w http.ResponseWriter, r *http.Request) {
+	resp := make(map[string]interface{})
+
+	if r.Method == "POST" {
+		q := r.FormValue("q")
+		if q == "" {
+			resp["code"] = 0
+			resp["error"] = "参数q不能为空"
+		}
+
+		i := 0
+		words := strings.Split(q, ",")
+		for _, s := range words {
+			trie.Singleton().Add(strings.Trim(s, " "))
+			i ++
+		}
+
+		resp["code"] = 1
+		resp["mess"] = fmt.Sprintf("共添加了%d个敏感词", i)
+	}else {
+		resp["code"] = 0
+		resp["error"] = "只允许POST方式"
+	}
+	serveJson(w, resp)
+}
+
+func delWords(w http.ResponseWriter, r *http.Request) {
+	resp := make(map[string]interface{})
+
+	if r.Method == "POST" {
+		q := r.FormValue("q")
+		if q == "" {
+			resp["code"] = 0
+			resp["error"] = "参数q不能为空"
+		}
+
+		i := 0
+		words := strings.Split(q, ",")
+		for _, s := range words {
+			trie.Singleton().Del(strings.Trim(s, " "))
+			i ++
+		}
+
+		resp["code"] = 1
+		resp["mess"] = fmt.Sprintf("共删除了%d个敏感词", i)
+	}else {
+		resp["code"] = 0
+		resp["error"] = "只允许POST方式"
+	}
+	serveJson(w, resp)
 }
 
 func serveJson(w http.ResponseWriter, data interface{}) {
