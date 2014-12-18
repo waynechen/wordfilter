@@ -1,8 +1,6 @@
 package trie
 
-import (
-	"sync"
-)
+import "sync"
 
 type Trie struct{
 	Root *TrieNode
@@ -27,9 +25,11 @@ func NewTrieNode() *TrieNode {
 	return n
 }
 
-// 输入一个UTF8的 string, 创建
+// 添加一个敏感词(UTF-8的)
 func (t *Trie) Add(keyword string) {
 	chars := []rune(keyword)
+	end := len(chars) - 1
+
 	if len(chars) == 0 {
 		return
 	}
@@ -37,17 +37,20 @@ func (t *Trie) Add(keyword string) {
 	t.Mutex.Lock()
 
 	node := t.Root
-	for _, char := range chars {
+	for index, char := range chars {
 		if _, ok := node.Node[char]; !ok {
 			node.Node[char] = NewTrieNode()
 		}
-		node = node.Node[char]
+		if index < end {
+			node = node.Node[char]
+		}
 	}
 	node.End = true
 
 	t.Mutex.Unlock()
 }
 
+// 删除一个敏感词
 func (t *Trie) Del(keyword string) {
 	chars := []rune(keyword)
 	if len(chars) == 0 {
@@ -55,43 +58,40 @@ func (t *Trie) Del(keyword string) {
 	}
 
 	t.Mutex.Lock()
-
 	node := t.Root
-
 	t.cycleDel(node, chars, 0)
-
-
-	//t.cycleDel(node, chars, 0)
-
 	t.Mutex.Unlock()
 }
 
 func (t *Trie) cycleDel(node *TrieNode, chars []rune, index int) (shouldDel bool) {
 	char := chars[index]
-
 	l := len(chars)
 
-//	if tmpNode, ok := node.Node[char]; ok && index < l {
-//		shouldDel = t.cycleDel(tmpNode, chars, index+1)
-//	}else {
-//		shouldDel = true
-//	}
-//
-//	if index+1 < l {
-//		if node.Node[char].End {
-//			shouldDel = false
-//		}
-//	}
-//
-//	if shouldDel {
-//		delete(node.Node, char)
+	if tmpNode, ok := node.Node[char]; ok {
+		if index+1 < l {
+			shouldDel = t.cycleDel(tmpNode, chars, index+1)
+			if shouldDel {
+				if node.End { // 说明这是一个敏感词，不能删除
+					shouldDel = false
+				}else {
+					delete(node.Node, char)
+				}
+			}
+		}else if node.End {
+			if len(tmpNode.Node) == 0 { // 是最后一个节点
+				shouldDel = true
+			}else { // 不是最后一个节点
+				node.End = false
+			}
+		}
 	}
 
 	return
 }
 
-// 将text中在trie里的关键字，替换为*号
-// 返回结果: 是否有关键字, 关键字数组, 替换后的文本
+// 查找替换
+// 将text中在trie里的敏感字，替换为*号
+// 返回结果: 是否有敏感字, 敏感字数组, 替换后的文本
 func (t *Trie) Replace(text string) (bool, []string, string) {
 	found := []string{}
 	chars := []rune(text)
@@ -101,39 +101,39 @@ func (t *Trie) Replace(text string) (bool, []string, string) {
 	}
 
 	var (
-		i, j, k int
-		tmpFound []rune
+		i, j, jj int
 		ok bool
 	)
 
 	node := t.Root
-	for i = 0; i < l; i ++ {
+	for i = 0; i < l; i++ {
 		if _, ok = node.Node[chars[i]]; !ok {
 			continue
 		}
 
-		tmpFound = []rune{}
-		tmpFound = append(tmpFound, chars[i])
+		jj = 0
 
 		node = node.Node[chars[i]]
-
 		for j = i+1; j < l; j++ {
 			if _, ok = node.Node[chars[j]]; !ok {
+				if jj > 0 {
+					found = t.replaceToAsterisk(found, chars, i, jj)
+					i = jj
+				}
 				break
 			}
 
-			tmpFound = append(tmpFound, chars[j])
+			if node.End {
+				jj = j //还有子节点的情况, 记住上次找到的位置, 以匹配最大串 (eg: AV, AV女优)
+
+				if len(node.Node[chars[j]].Node) == 0 { // 是最后节点, break
+					found = t.replaceToAsterisk(found, chars, i, j)
+					i = j
+					break;
+				}
+			}
 
 			node = node.Node[chars[j]]
-			if node.End {
-				for k = i; k <= j; k++ {
-					chars[k] = 42 // *的rune为42
-				}
-
-				found = append(found, string(tmpFound))
-				i = j
-				break;
-			}
 		}
 		node = t.Root
 	}
@@ -144,4 +144,34 @@ func (t *Trie) Replace(text string) (bool, []string, string) {
 	}
 
 	return exist, found, string(chars)
+}
+
+// 替换为*号
+func (t *Trie) replaceToAsterisk(found []string, chars []rune, i, j int) []string {
+	tmpFound := chars[i:j+1]
+	found = append(found, string(tmpFound))
+	for k := i; k <= j; k++ {
+		chars[k] = 42 // *的rune为42
+	}
+	return found
+}
+
+func (t *Trie) ReadAll() (words []string) {
+	t.Mutex.Lock()
+	words = []string{}
+	words = t.cycleRead(t.Root, words, "")
+	t.Mutex.Unlock()
+	return
+}
+
+func (t *Trie) cycleRead(node *TrieNode, words []string , parentWord string) []string {
+	for char, _ := range node.Node {
+		if node.End {
+			words = append(words, parentWord+string(char))
+		}
+		if len(node.Node) > 0 {
+			words = t.cycleRead(node.Node[char], words, parentWord+string(char))
+		}
+	}
+	return words
 }

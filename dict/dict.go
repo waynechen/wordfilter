@@ -18,10 +18,11 @@ func init() {
 
 // 从字典中装入敏感词库
 func LoadDict() {
-	getFileLists("./dictionary")
+	load("./dictionary/add", "add")
+	load("./dictionary/del", "del")
 }
 
-func getFileLists(path string) {
+func load(path , op string) {
 
 	var loadAllDictWalk filepath.WalkFunc = func(path string, f os.FileInfo, err error) error {
 		if f == nil {
@@ -31,7 +32,7 @@ func getFileLists(path string) {
 			return nil
 		}
 
-		loadAndAddToTrie(path)
+		initTrie(path, op)
 
 		return nil
 	}
@@ -42,7 +43,7 @@ func getFileLists(path string) {
 	}
 }
 
-func loadAndAddToTrie(path string) (err error) {
+func initTrie(path, op string) (err error) {
 	f, err := os.Open(path)
 	if err != nil {
 		fmt.Printf("fail to open file %s %s", path, err.Error())
@@ -69,7 +70,13 @@ func loadAndAddToTrie(path string) (err error) {
 		if word := strings.TrimSpace(string(line)); word != "" {
 			tmp := strings.Split(word, " ")
 			s := strings.Trim(tmp[0], " ")
-			trie.Singleton().Add(s)
+
+			if "add" == op {
+				trie.Singleton().Add(s)
+
+			}else if "del" == op {
+				trie.Singleton().Del(s)
+			}
 		}
 	}
 

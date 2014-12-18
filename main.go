@@ -26,12 +26,13 @@ func (this *router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		filterWords(w, r)
 
 	case "/v1/add": // 添加敏感词
-		// TODO
 		addWords(w, r)
 
-	case "v1/del": // 删除敏感词
-		// TODO
+	case "/v1/del": // 删除敏感词
 		delWords(w, r)
+
+	case "/v1/words": // 显示所有敏感词
+		viewWords(w, r)
 
 	default:
 		notFound(w)
@@ -102,17 +103,17 @@ func addWords(w http.ResponseWriter, r *http.Request) {
 		if q == "" {
 			resp["code"] = 0
 			resp["error"] = "参数q不能为空"
-		}
+		}else {
+			i := 0
+			words := strings.Split(q, ",")
+			for _, s := range words {
+				trie.Singleton().Add(strings.Trim(s, " "))
+				i ++
+			}
 
-		i := 0
-		words := strings.Split(q, ",")
-		for _, s := range words {
-			trie.Singleton().Add(strings.Trim(s, " "))
-			i ++
+			resp["code"] = 1
+			resp["mess"] = fmt.Sprintf("共添加了%d个敏感词", i)
 		}
-
-		resp["code"] = 1
-		resp["mess"] = fmt.Sprintf("共添加了%d个敏感词", i)
 	}else {
 		resp["code"] = 0
 		resp["error"] = "只允许POST方式"
@@ -128,22 +129,31 @@ func delWords(w http.ResponseWriter, r *http.Request) {
 		if q == "" {
 			resp["code"] = 0
 			resp["error"] = "参数q不能为空"
-		}
+		}else {
+			i := 0
+			words := strings.Split(q, ",")
+			for _, s := range words {
+				trie.Singleton().Del(strings.Trim(s, " "))
+				i ++
+			}
 
-		i := 0
-		words := strings.Split(q, ",")
-		for _, s := range words {
-			trie.Singleton().Del(strings.Trim(s, " "))
-			i ++
+			resp["code"] = 1
+			resp["mess"] = fmt.Sprintf("共删除了%d个敏感词", i)
 		}
-
-		resp["code"] = 1
-		resp["mess"] = fmt.Sprintf("共删除了%d个敏感词", i)
 	}else {
 		resp["code"] = 0
 		resp["error"] = "只允许POST方式"
 	}
 	serveJson(w, resp)
+}
+
+func viewWords(w http.ResponseWriter, r *http.Request) {
+	words := trie.Singleton().ReadAll()
+	str := strings.Join(words,"\n")
+	w.Header().Set("Server", "DOOLAND")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(200)
+	w.Write([]byte(str))
 }
 
 func serveJson(w http.ResponseWriter, data interface{}) {

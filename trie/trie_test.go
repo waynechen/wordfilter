@@ -4,39 +4,95 @@ import (
 	"testing"
 )
 
-func TestAdd(t *testing.T) {
-	trie := NewTrie()
-	trie.Add("中华人民共和国")
-	trie.Add("中国")
-	trie.Add("中国共产党")
-	trie.Add("中国人民解放军")
-	trie.Add("中国人民武警")
-	trie.Add("华人")
-	trie.Add("我men是")
-
-	node := trie.Root
-	printTrie(node, t, " |")
-}
-
 func printTrie(node *TrieNode, t *testing.T, line string) {
 	if len(node.Node) > 0 {
 		for char, n := range node.Node {
-			t.Logf("%s%s", line, string(char))
+			//t.Logf("%s%s", line, string(char))
+			t.Logf("%s%s %t %d", line, string(char), node.End, len(node.Node))
 			printTrie(n, t, line+" |")
 		}
 	}
 }
 
+func TestAdd(t *testing.T) {
+	trie := NewTrie()
+	trie.Add("中华人民共和国")
+	trie.Add("中国")
+	trie.Add("中国人民")
+	trie.Add("中国共产党")
+	trie.Add("中国人民解放军")
+	trie.Add("中国人民武警")
+	trie.Add("中央书记")
+	trie.Add("华人")
+	trie.Add("我men是")
+
+	node := trie.Root
+	printTrie(node, t, " |")
+
+	words := trie.ReadAll()
+	for _, w := range words{
+		t.Logf("%s\n",w)
+	}
+}
+
+func TestDel(t *testing.T) {
+	trie := NewTrie()
+	trie.Add("AV")
+	trie.Add("AV演员")
+	trie.Add("AV演员色情")
+	trie.Add("日本AV女优")
+
+	text := "AV AV演员 AV演员色情"
+
+	//删除开头的
+	expect := "AV **** ******"
+	trie.Del("AV")
+	_, _, newText := trie.Replace(text)
+
+	if newText != expect {
+		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
+	}
+	trie.Add("AV")
+
+	// 删除中间的
+	trie.Del("AV演员")
+	expect = "** **演员 ******"
+	_, _, newText = trie.Replace(text)
+	if newText != expect {
+		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
+	}
+	trie.Add("AV演员")
+
+	// 删除后面的
+	trie.Del("AV演员色情")
+	expect = "** **** ****色情"
+	_, _, newText = trie.Replace(text)
+	if newText != expect {
+		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
+	}
+	trie.Add("AV演员色情")
+
+	//删除不存在的敏感词
+	trie.Del("VA演")
+	expect = "** **** ******"
+	_, _, newText = trie.Replace(text)
+	if newText != expect {
+		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
+	}
+}
 
 func TestReplace(t *testing.T) {
 	trie := NewTrie()
-	trie.Add("苍井空")
 	trie.Add("AV")
-	trie.Add("日本AV")
 	trie.Add("AV演员")
+	trie.Add("AV演员色情")
+	trie.Add("日本AV女优")
 
-	text := "苍井空（あおい そら），日本AV演员兼电视、电影演员。苍井空AV女优是从xx出道"
-	expect := "***（あおい そら），****演员兼电视、电影演员。*****女优是从xx出道"
+	node := trie.Root
+	printTrie(node, t, " |")
+
+	text := "日本AV演员兼电视、电影演员。苍井空AV女优是xx出道, 日本AV女优们最精彩的表演是AV演员色情表演"
+	expect := "日本****兼电视、电影演员。苍井空**女优是xx出道, ******们最精彩的表演是******表演"
 
 	ok, words, newText := trie.Replace(text)
 
@@ -44,54 +100,49 @@ func TestReplace(t *testing.T) {
 	t.Log("text:", newText)
 
 	if !ok {
-		t.Errorf("替换失败\n")
+		t.Errorf("替换失败 1\n")
+	}
+
+	if len(words) == 0 {
+		t.Errorf("替换失败 2\n")
 	}
 
 	if newText != expect {
 		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
 	}
 
+	// 和谐的文本
+	text = "完全和谐的文本完全和谐的文本"
+	ok, words, newText = trie.Replace(text)
 
-	ok, _, _ = trie.Replace("完全和谐的文本")
 	if ok {
 		t.Errorf("替换失败\n")
 	}
+
+	if len(words) != 0 {
+		t.Errorf("替换失败 2\n")
+	}
+
+	if newText != text {
+		t.Errorf("替换失败 3\n")
+	}
 }
 
-func TestDel(t *testing.T) {
+func TestReplaceNilTrie(t *testing.T) {
 	trie := NewTrie()
-	trie.Add("苍井空")
-	trie.Add("AV")
-	trie.Add("日本AV")
-	trie.Add("AV演员")
+	// 和谐的文本
+	text := "完全和谐的文本完全和谐的文本"
+	ok, words, newText := trie.Replace(text)
 
-	node := trie.Root
-	printTrie(node, t, " |")
-	t.Log("-----")
+	if ok {
+		t.Errorf("替换失败\n")
+	}
 
-	trie.Del("AV演员")
-	node = trie.Root
-	printTrie(node, t, " |")
-	//
-	//	text := "苍井空（あおい そら），日本AV演员兼电视、电影演员。苍井空AV女优是从xx出道"
-	//	expect := "***（あおい そら），****演员兼电视、电影演员。*****女优是从xx出道"
-	//
-	//	_, _, newText := trie.Replace(text)
-	//
-	//	if newText != expect {
-	//		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
-	//	}
-	//
-	//
-	//	t.Log("删除一个敏感词")
-	//
-	//	trie.Del("AV")
-	//
-	//	text := "苍井空（あおい そら），日本AV演员兼电视、电影演员。苍井空AV女优是从xx出道"
-	//	expect := "***（あおい そら），日本****兼电视、电影演员。***AV女优是从xx出道"
-	//
-	//	_, _, newText := trie.Replace(text)
-	//	if newText != expect {
-	//		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
-	//	}
+	if len(words) != 0 {
+		t.Errorf("替换失败 2\n")
+	}
+
+	if newText != text {
+		t.Errorf("替换失败 3\n")
+	}
 }
