@@ -8,7 +8,7 @@ func printTrie(node *TrieNode, t *testing.T, line string) {
 	if len(node.Node) > 0 {
 		for char, n := range node.Node {
 			//t.Logf("%s%s", line, string(char))
-			t.Logf("%s%s %t %d", line, string(char), node.End, len(node.Node))
+			t.Logf("%s%s %t %d", line, string(char), n.End, len(n.Node))
 			printTrie(n, t, line+" |")
 		}
 	}
@@ -30,8 +30,8 @@ func TestAdd(t *testing.T) {
 	printTrie(node, t, " |")
 
 	words := trie.ReadAll()
-	for _, w := range words{
-		t.Logf("%s\n",w)
+	for _, w := range words {
+		t.Logf("%s\n", w)
 	}
 }
 
@@ -43,11 +43,16 @@ func TestDel(t *testing.T) {
 	trie.Add("日本AV女优")
 
 	text := "AV AV演员 AV演员色情"
+	expect := ""
+	newText := ""
+
+	printTrie(trie.Root, t, " |")
+	t.Log("-----------------------")
 
 	//删除开头的
-	expect := "AV **** ******"
+	expect = "AV **** ******"
 	trie.Del("AV")
-	_, _, newText := trie.Replace(text)
+	_, _, newText = trie.Replace(text)
 
 	if newText != expect {
 		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
@@ -74,6 +79,13 @@ func TestDel(t *testing.T) {
 
 	//删除不存在的敏感词
 	trie.Del("VA演")
+	expect = "** **** ******"
+	_, _, newText = trie.Replace(text)
+	if newText != expect {
+		t.Errorf("希望得到: %s\n实际得到: %s\n", expect, newText)
+	}
+
+	trie.Del("AV演员色情表演")
 	expect = "** **** ******"
 	_, _, newText = trie.Replace(text)
 	if newText != expect {

@@ -28,7 +28,6 @@ func NewTrieNode() *TrieNode {
 // 添加一个敏感词(UTF-8的)
 func (t *Trie) Add(keyword string) {
 	chars := []rune(keyword)
-	end := len(chars) - 1
 
 	if len(chars) == 0 {
 		return
@@ -37,13 +36,11 @@ func (t *Trie) Add(keyword string) {
 	t.Mutex.Lock()
 
 	node := t.Root
-	for index, char := range chars {
+	for _, char := range chars {
 		if _, ok := node.Node[char]; !ok {
 			node.Node[char] = NewTrieNode()
 		}
-		if index < end {
-			node = node.Node[char]
-		}
+		node = node.Node[char]
 	}
 	node.End = true
 
@@ -67,21 +64,21 @@ func (t *Trie) cycleDel(node *TrieNode, chars []rune, index int) (shouldDel bool
 	char := chars[index]
 	l := len(chars)
 
-	if tmpNode, ok := node.Node[char]; ok {
+	if n, ok := node.Node[char]; ok {
 		if index+1 < l {
-			shouldDel = t.cycleDel(tmpNode, chars, index+1)
+			shouldDel = t.cycleDel(n, chars, index+1)
 			if shouldDel {
-				if node.End { // 说明这是一个敏感词，不能删除
+				if n.End { // 说明这是一个敏感词，不能删除
 					shouldDel = false
 				}else {
 					delete(node.Node, char)
 				}
 			}
-		}else if node.End {
-			if len(tmpNode.Node) == 0 { // 是最后一个节点
+		}else if n.End {
+			if len(n.Node) == 0 { // 是最后一个节点
 				shouldDel = true
 			}else { // 不是最后一个节点
-				node.End = false
+				n.End = false
 			}
 		}
 	}
@@ -123,17 +120,16 @@ func (t *Trie) Replace(text string) (bool, []string, string) {
 				break
 			}
 
+			node = node.Node[chars[j]]
 			if node.End {
 				jj = j //还有子节点的情况, 记住上次找到的位置, 以匹配最大串 (eg: AV, AV女优)
 
-				if len(node.Node[chars[j]].Node) == 0 { // 是最后节点, break
+				if len(node.Node) == 0 { // 是最后节点, break
 					found = t.replaceToAsterisk(found, chars, i, j)
 					i = j
 					break;
 				}
 			}
-
-			node = node.Node[chars[j]]
 		}
 		node = t.Root
 	}
@@ -165,12 +161,12 @@ func (t *Trie) ReadAll() (words []string) {
 }
 
 func (t *Trie) cycleRead(node *TrieNode, words []string , parentWord string) []string {
-	for char, _ := range node.Node {
-		if node.End {
+	for char, n := range node.Node {
+		if n.End {
 			words = append(words, parentWord+string(char))
 		}
-		if len(node.Node) > 0 {
-			words = t.cycleRead(node.Node[char], words, parentWord+string(char))
+		if len(n.Node) > 0 {
+			words = t.cycleRead(n, words, parentWord+string(char))
 		}
 	}
 	return words

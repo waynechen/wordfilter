@@ -123,7 +123,15 @@ then visit http://127.0.0.1:8080/v1/filter?q=文本内容
 
 ### 4.查看所有敏感词
 
-TODO
+* **Request:**  /v1/words 
+* **Request Method:** GET
+* **Response:**
+```
+陪睡
+陪伴服务
+陪聊女
+陪聊小姐
+```
 
 ## 词库说明
 敏感词词库在 dictionary 目录里
