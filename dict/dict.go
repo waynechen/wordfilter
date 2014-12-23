@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"dooland/wordfilter/trie"
+	"github.com/huayuego/wordfilter/trie"
 )
 
 func init() {

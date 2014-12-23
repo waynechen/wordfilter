@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	_ "dooland/wordfilter/dict"
-	"dooland/wordfilter/trie"
+	_ "github.com/huayuego/wordfilter/dict"
+	"github.com/huayuego/wordfilter/trie"
 	"os"
 )
 
@@ -150,14 +150,14 @@ func delWords(w http.ResponseWriter, r *http.Request) {
 func viewWords(w http.ResponseWriter, r *http.Request) {
 	words := trie.Singleton().ReadAll()
 	str := strings.Join(words,"\n")
-	w.Header().Set("Server", "DOOLAND")
+	w.Header().Set("Server", "HuaHueGo")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(200)
 	w.Write([]byte(str))
 }
 
 func serveJson(w http.ResponseWriter, data interface{}) {
-	w.Header().Set("Server", "DOOLAND")
+	w.Header().Set("Server", "HuaHueGo")
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(200)
 
