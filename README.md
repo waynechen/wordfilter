@@ -21,26 +21,11 @@ then visit http://127.0.0.1:8080/v1/filter?q=文本内容
 * **Request:**  /v1/filter 
 * **Request Method:** GET or POST 
 * **Params**:
-<table>
-	<thead>
-		<tr>
-			<th>Name</th>
-			<th>Type</th>
-			<th>Required</th>
-			<th>Example</th>
-			<th>Desc.</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td> q </td>
-			<td> string </td>
-			<td> Yes </td>
-			<td> </td>
-			<td> 需要检查的文本内容 </td>
-		</tr>
-	</tbody>
-</table>
+
+| Name | Type | Requried | Example | Desc. |
+| ---- | ---- | -------- | ------- | ----- |
+| q | string | yes | | 需要检查的文本内容 |
+
 *  **Response:**
 ```
 {
@@ -58,26 +43,11 @@ then visit http://127.0.0.1:8080/v1/filter?q=文本内容
 * **Request:**  /v1/add 
 * **Request Method:** POST 
 * **Params**:
-<table>
-	<thead>
-		<tr>
-			<th>Name</th>
-			<th>Type</th>
-			<th>Required</th>
-			<th>Example</th>
-			<th>Desc.</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td> q </td>
-			<td> string </td>
-			<td> Yes </td>
-			<td> 你大爷,走私 </td>
-			<td> 敏感词，多个之间与逗号相隔 </td>
-		</tr>
-	</tbody>
-</table>
+
+| Name | Type | Requried | Example | Desc. |
+| ---- | ---- | -------- | ------- | ----- |
+| q    | string | yes  | 你大爷,走私 | 敏感词，多个之间与逗号相隔 |
+
 *  **Response:**
 ```
 {
@@ -93,26 +63,11 @@ then visit http://127.0.0.1:8080/v1/filter?q=文本内容
 * **Request:**  /v1/del 
 * **Request Method:** POST 
 * **Params**:
-<table>
-	<thead>
-		<tr>
-			<th>Name</th>
-			<th>Type</th>
-			<th>Required</th>
-			<th>Example</th>
-			<th>Desc.</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td> q </td>
-			<td> string </td>
-			<td> Yes </td>
-			<td> 你大爷,走私 </td>
-			<td> 敏感词，多个之间与逗号相隔 </td>
-		</tr>
-	</tbody>
-</table>
+* 
+| Name | Type | Requried | Example | Desc. |
+| ---- | ---- | -------- | ------- | ----- |
+| q    | string | yes  | 你大爷,走私 | 敏感词，多个之间与逗号相隔 |
+
 *  **Response:**
 ```
 {
