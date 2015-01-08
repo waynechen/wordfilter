@@ -38,7 +38,7 @@ then visit http://127.0.0.1:8080/v1/filter?q=文本内容
 
 ### 2.添加敏感词
 
-添加一级敏感词
+添加一组敏感词
 
 * **Request:**  /v1/add 
 * **Request Method:** POST 
@@ -63,7 +63,7 @@ then visit http://127.0.0.1:8080/v1/filter?q=文本内容
 * **Request:**  /v1/del 
 * **Request Method:** POST 
 * **Params**:
-* 
+
 | Name | Type | Requried | Example | Desc. |
 | ---- | ---- | -------- | ------- | ----- |
 | q    | string | yes  | 你大爷,走私 | 敏感词，多个之间与逗号相隔 |
