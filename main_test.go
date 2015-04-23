@@ -5,19 +5,20 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 )
 
-type respData struct{
-	Code     int `json:"code"`
-	Error    string `json:"error"`
-	Mess     string `json:"mess"`
+type respData struct {
+	Code     int      `json:"code"`
+	Error    string   `json:"error"`
+	Mess     string   `json:"mess"`
 	Keywords []string `json:"keywords"`
-	Text     string `json:"text"`
+	Text     string   `json:"text"`
 }
 
 func Test_V1_Add_Fail(t *testing.T) {
-	postUrl := "http://127.0.0.1:8080/v1/add"
+	postUrl := "http://127.0.0.1:8080/v1/balck_words"
 	resp, err := http.PostForm(postUrl, url.Values{})
 	if err != nil {
 		t.Error(err)
@@ -39,7 +40,7 @@ func Test_V1_Add_Fail(t *testing.T) {
 }
 
 func Test_V1_Add_Success(t *testing.T) {
-	postUrl := "http://127.0.0.1:8080/v1/add"
+	postUrl := "http://127.0.0.1:8080/v1/balck_words"
 	resp, err := http.PostForm(postUrl, url.Values{"q": {"测试"}})
 	if err != nil {
 		t.Error(err)
@@ -65,8 +66,12 @@ func Test_V1_Add_Success(t *testing.T) {
 }
 
 func Test_V1_Del_Success(t *testing.T) {
-	postUrl := "http://127.0.0.1:8080/v1/del"
-	resp, err := http.PostForm(postUrl, url.Values{"q": {"测试,test02"}})
+	link := "http://127.0.0.1:8080/v1/balck_words"
+
+	r, err := http.NewRequest("DELETE", link, strings.NewReader(`{"q": "测试,test02"}`))
+	r.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(r)
+
 	if err != nil {
 		t.Error(err)
 	}
@@ -90,8 +95,8 @@ func Test_V1_Del_Success(t *testing.T) {
 	}
 }
 
-func Test_V1_Filter_Success_Without_Black_Words(t *testing.T) {
-	postUrl := "http://127.0.0.1:8080/v1/filter"
+func Test_V1_Query_Success_Without_Black_Words(t *testing.T) {
+	postUrl := "http://127.0.0.1:8080/v1/query"
 	resp, err := http.PostForm(postUrl, url.Values{"q": {"完全和谐的文本"}})
 	if err != nil {
 		t.Error(err)
@@ -110,7 +115,7 @@ func Test_V1_Filter_Success_Without_Black_Words(t *testing.T) {
 	data := respData{}
 	json.Unmarshal(body, &data)
 
-	if data.Code == 0 {
+	if data.Code == 1 {
 		t.Errorf("code: %d, error: %s, mess: %s", data.Code, data.Error, data.Mess)
 	}
 
@@ -121,8 +126,8 @@ func Test_V1_Filter_Success_Without_Black_Words(t *testing.T) {
 	}
 }
 
-func Test_V1_Filter_Success_With_Black_Words(t *testing.T) {
-	postUrl := "http://127.0.0.1:8080/v1/filter"
+func Test_V1_Query_Success_With_Black_Words(t *testing.T) {
+	postUrl := "http://127.0.0.1:8080/v1/query"
 	resp, err := http.PostForm(postUrl, url.Values{"q": {"对于1989年诺贝尔和平奖有什么看法"}})
 	if err != nil {
 		t.Error(err)

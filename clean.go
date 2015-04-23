@@ -12,7 +12,7 @@ import (
 
 //清除相同的关键字
 func main1() {
-	path := "./dictionary/add"
+	path := "./dictionary/black/default"
 
 	var loadAllDictWalk filepath.WalkFunc = func(path string, f os.FileInfo, err error) error {
 		if f == nil {
@@ -68,8 +68,8 @@ func loadByLine(path string) (err error) {
 
 			if _, ok := keywords[s]; !ok {
 				keywords[s] = 1
-			}else {
-				keywords[s] ++
+			} else {
+				keywords[s]++
 			}
 		}
 	}

@@ -18,11 +18,18 @@ func init() {
 
 // 从字典中装入敏感词库
 func LoadDict() {
-	load("./dictionary/add", "add")
-	load("./dictionary/del", "del")
+	trieHandle := trie.BlackTrie()
+	load(trieHandle, "add", "./dictionary/black/default")
+	load(trieHandle, "del", "./dictionary/black/exclude")
+
+	trieHandle = trie.WhitePrefixTrie()
+	load(trieHandle, "add", "./dictionary/white/prefix")
+
+	trieHandle = trie.WhiteSuffixTrie()
+	load(trieHandle, "add", "./dictionary/white/suffix")
 }
 
-func load(path , op string) {
+func load(trieHandle *trie.Trie, op, path string) {
 
 	var loadAllDictWalk filepath.WalkFunc = func(path string, f os.FileInfo, err error) error {
 		if f == nil {
@@ -32,7 +39,7 @@ func load(path , op string) {
 			return nil
 		}
 
-		initTrie(path, op)
+		initTrie(trieHandle, op, path)
 
 		return nil
 	}
@@ -43,7 +50,7 @@ func load(path , op string) {
 	}
 }
 
-func initTrie(path, op string) (err error) {
+func initTrie(trieHandle *trie.Trie, op, path string) (err error) {
 	f, err := os.Open(path)
 	if err != nil {
 		fmt.Printf("fail to open file %s %s", path, err.Error())
@@ -72,10 +79,10 @@ func initTrie(path, op string) (err error) {
 			s := strings.Trim(tmp[0], " ")
 
 			if "add" == op {
-				trie.Singleton().Add(s)
+				trieHandle.Add(s)
 
-			}else if "del" == op {
-				trie.Singleton().Del(s)
+			} else if "del" == op {
+				trieHandle.Del(s)
 			}
 		}
 	}

@@ -1,15 +1,18 @@
 package trie
 
-import "sync"
+import (
+	"sync"
+)
 
-type Trie struct{
-	Root *TrieNode
-	Mutex sync.RWMutex
+type Trie struct {
+	Root           *TrieNode
+	Mutex          sync.RWMutex
+	CheckWhiteList bool // 是否检查白名单
 }
 
-type TrieNode struct{
+type TrieNode struct {
 	Node map[rune]*TrieNode
-	End bool
+	End  bool
 }
 
 func NewTrie() *Trie {
@@ -70,14 +73,14 @@ func (t *Trie) cycleDel(node *TrieNode, chars []rune, index int) (shouldDel bool
 			if shouldDel {
 				if n.End { // 说明这是一个敏感词，不能删除
 					shouldDel = false
-				}else {
+				} else {
 					delete(node.Node, char)
 				}
 			}
-		}else if n.End {
+		} else if n.End {
 			if len(n.Node) == 0 { // 是最后一个节点
 				shouldDel = true
-			}else { // 不是最后一个节点
+			} else { // 不是最后一个节点
 				n.End = false
 			}
 		}
@@ -89,7 +92,7 @@ func (t *Trie) cycleDel(node *TrieNode, chars []rune, index int) (shouldDel bool
 // 查找替换
 // 将text中在trie里的敏感字，替换为*号
 // 返回结果: 是否有敏感字, 敏感字数组, 替换后的文本
-func (t *Trie) Replace(text string) (bool, []string, string) {
+func (t *Trie) Query(text string) (bool, []string, string) {
 	found := []string{}
 	chars := []rune(text)
 	l := len(chars)
@@ -99,7 +102,7 @@ func (t *Trie) Replace(text string) (bool, []string, string) {
 
 	var (
 		i, j, jj int
-		ok bool
+		ok       bool
 	)
 
 	node := t.Root
@@ -111,11 +114,15 @@ func (t *Trie) Replace(text string) (bool, []string, string) {
 		jj = 0
 
 		node = node.Node[chars[i]]
-		for j = i+1; j < l; j++ {
+		for j = i + 1; j < l; j++ {
 			if _, ok = node.Node[chars[j]]; !ok {
 				if jj > 0 {
-					found = t.replaceToAsterisk(found, chars, i, jj)
-					i = jj
+					if t.CheckWhiteList && t.isInWhiteList(found, chars, i, jj, l) {
+						i = jj
+					} else {
+						found = t.replaceToAsterisk(found, chars, i, jj)
+						i = jj
+					}
 				}
 				break
 			}
@@ -124,10 +131,16 @@ func (t *Trie) Replace(text string) (bool, []string, string) {
 			if node.End {
 				jj = j //还有子节点的情况, 记住上次找到的位置, 以匹配最大串 (eg: AV, AV女优)
 
-				if len(node.Node) == 0 { // 是最后节点, break
-					found = t.replaceToAsterisk(found, chars, i, j)
-					i = j
-					break;
+				if len(node.Node) == 0 || j+1 == l { // 是最后节点或者最后一个字符, break
+					if t.CheckWhiteList && t.isInWhiteList(found, chars, i, j, l) {
+						i = j
+						break
+
+					} else {
+						found = t.replaceToAsterisk(found, chars, i, j)
+						i = j
+						break
+					}
 				}
 			}
 		}
@@ -142,9 +155,58 @@ func (t *Trie) Replace(text string) (bool, []string, string) {
 	return exist, found, string(chars)
 }
 
+func (t *Trie) isInWhiteList(found []string, chars []rune, i, j, length int) (inWhiteList bool) {
+	inWhiteList = t.isInWhitePreffixList(found, chars, i, j, length)
+	if !inWhiteList {
+		inWhiteList = t.isInWhiteSuffixList(found, chars, i, j, length)
+	}
+	return
+}
+
+// 取前5个字去 前缀白名单中检查
+func (t *Trie) isInWhitePreffixList(found []string, chars []rune, i, j, length int) (inWhiteList bool) {
+	if i == 0 { // 第一个
+		return
+	}
+	prefixPos := i - 4
+	if prefixPos < 0 {
+		prefixPos = 0
+	}
+	prefixWords := string(chars[prefixPos : i+1])
+	exist, _, respChars := WhitePrefixTrie().Query(prefixWords)
+	if exist {
+		tmp := []rune(respChars)
+		if tmp[len(tmp)-1] == 42 {
+			inWhiteList = true
+		}
+	}
+	return
+}
+
+// 取后5个字去 后缀白名单中检查
+func (t *Trie) isInWhiteSuffixList(found []string, chars []rune, i, j, length int) (inWhiteList bool) {
+	if j+1 == length { // 最后一个字了
+		return
+	}
+
+	suffixPos := j + 5
+	if suffixPos > length {
+		suffixPos = length
+	}
+	suffixWords := string(chars[j:suffixPos])
+	exist, _, respChars := WhiteSuffixTrie().Query(suffixWords)
+	if exist {
+		tmp := []rune(respChars)
+		if tmp[len(tmp)-1] == 42 {
+			inWhiteList = true
+		}
+	}
+	return
+}
+
 // 替换为*号
 func (t *Trie) replaceToAsterisk(found []string, chars []rune, i, j int) []string {
-	tmpFound := chars[i:j+1]
+	tmpFound := chars[i : j+1]
 	found = append(found, string(tmpFound))
 	for k := i; k <= j; k++ {
 		chars[k] = 42 // *的rune为42
@@ -160,7 +222,7 @@ func (t *Trie) ReadAll() (words []string) {
 	return
 }
 
-func (t *Trie) cycleRead(node *TrieNode, words []string , parentWord string) []string {
+func (t *Trie) cycleRead(node *TrieNode, words []string, parentWord string) []string {
 	for char, n := range node.Node {
 		if n.End {
 			words = append(words, parentWord+string(char))
