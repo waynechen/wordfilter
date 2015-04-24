@@ -197,7 +197,7 @@ func (t *Trie) isInWhiteSuffixList(found []string, chars []rune, i, j, length in
 	exist, _, respChars := WhiteSuffixTrie().Query(suffixWords)
 	if exist {
 		tmp := []rune(respChars)
-		if tmp[len(tmp)-1] == 42 {
+		if tmp[0] == 42 {
 			inWhiteList = true
 		}
 	}
