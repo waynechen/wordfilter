@@ -90,9 +90,6 @@ func queryWords(w http.ResponseWriter, r *http.Request) {
 		if ok {
 			res.Keywords = keyword
 			res.Text = newText
-		} else {
-			res.Code = 0
-			res.Error = "没有敏感词"
 		}
 	} else {
 		res.Code = 0
